@@ -1,0 +1,26 @@
+# netauto-lab — Phase 1 base topology (skeleton)
+# 2x Arista cEOS + 1 Linux host, point-to-point links
+#
+# NOTE: cEOS-lab image is not on a public registry — download from
+# arista.com (free account) and import locally, e.g.:
+#   docker import cEOS64-lab-4.32.0F.tar.xz ceos:4.32.0F
+#
+# Deploy: containerlab deploy -t clab/base.clab.yml
+
+name: base
+
+topology:
+  nodes:
+    ceos1:
+      kind: arista_ceos
+      image: ceos:4.32.0F
+    ceos2:
+      kind: arista_ceos
+      image: ceos:4.32.0F
+    host1:
+      kind: linux
+      image: ghcr.io/srl-labs/network-multitool
+
+  links:
+    - endpoints: ["ceos1:eth1", "ceos2:eth1"]   # inter-switch link
+    - endpoints: ["ceos1:eth2", "host1:eth1"]   # host attachment
