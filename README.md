@@ -92,7 +92,7 @@ netauto --source netbox deploy
 | 2 — SoT model, validation, rendering | done | [x] offline tests in CI |
 | 2 — NetBox seed / load | done | [x] round trip against NetBox 4.7.5 — [ ] on my own NetBox |
 | 3 — NAPALM deploy + pre/post-change validation | done | [x] sequence tested with a fake driver — [ ] against cEOS |
-| 4 — CI: lint, validate, render check, tests | done | [ ] green on GitHub |
+| 4 — CI: lint, validate, render check, tests | done | [x] green on GitHub |
 
 Unticked boxes are things that have not been observed yet. Results go in
 [docs/runlog/](docs/runlog/).
