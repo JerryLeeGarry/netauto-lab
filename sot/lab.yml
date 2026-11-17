@@ -1,0 +1,31 @@
+# Intent for the lab fabric. This file is the seed for NetBox and the input
+# for offline rendering. Everything that can be derived (BGP neighbours,
+# interface descriptions, host routes, the containerlab topology) is derived,
+# not entered here.
+site: lab
+supernet: 10.0.0.0/8          # every fabric address must sit inside this
+mgmt_subnet: 172.20.20.0/24   # containerlab default management network
+
+devices:
+  spine1: {role: spine, platform: eos, mgmt_ip: 172.20.20.11, asn: 65000, loopback0: 10.0.0.1/32}
+  spine2: {role: spine, platform: eos, mgmt_ip: 172.20.20.12, asn: 65000, loopback0: 10.0.0.2/32}
+  leaf1: {role: leaf, platform: eos, mgmt_ip: 172.20.20.21, asn: 65011, loopback0: 10.0.0.11/32}
+  leaf2: {role: leaf, platform: eos, mgmt_ip: 172.20.20.22, asn: 65012, loopback0: 10.0.0.12/32}
+  host1: {role: host, platform: linux, mgmt_ip: 172.20.20.31}
+  host2: {role: host, platform: linux, mgmt_ip: 172.20.20.32}
+
+links:
+  # spine <-> leaf point-to-point /31s
+  - a: {device: spine1, interface: Ethernet1, ip: 10.1.0.0/31}
+    b: {device: leaf1, interface: Ethernet1, ip: 10.1.0.1/31}
+  - a: {device: spine1, interface: Ethernet2, ip: 10.1.0.2/31}
+    b: {device: leaf2, interface: Ethernet1, ip: 10.1.0.3/31}
+  - a: {device: spine2, interface: Ethernet1, ip: 10.1.0.4/31}
+    b: {device: leaf1, interface: Ethernet2, ip: 10.1.0.5/31}
+  - a: {device: spine2, interface: Ethernet2, ip: 10.1.0.6/31}
+    b: {device: leaf2, interface: Ethernet2, ip: 10.1.0.7/31}
+  # leaf <-> host access subnets
+  - a: {device: leaf1, interface: Ethernet3, ip: 10.10.1.1/24}
+    b: {device: host1, interface: eth1, ip: 10.10.1.10/24}
+  - a: {device: leaf2, interface: Ethernet3, ip: 10.10.2.1/24}
+    b: {device: host2, interface: eth1, ip: 10.10.2.10/24}
