@@ -80,8 +80,7 @@ def _print_reports(reports) -> int:
         for check in report.checks:
             print(f"   {check}")
     failed = [r.device for r in reports.values() if not r.ok]
-    if failed:
-        print(f"FAILED: {', '.join(failed)}", file=sys.stderr)
+    print(f"FAILED: {', '.join(failed)}" if failed else "ALL OK")
     return 1 if failed else 0
 
 
