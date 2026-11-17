@@ -5,19 +5,21 @@ Bring the lab from nothing to "every router answers eAPI and is ready for
 default: hostname, the `admin` user, a management address and eAPI. Everything
 after that (interfaces, addressing, BGP) is pushed by the pipeline.
 
-> **Not yet executed.** This procedure was written without access to cEOS or
-> containerlab. Run it, correct it where reality differs, and record the run
-> in `docs/runlog/`.
+> **Executed once, not yet on WSL2.** All nine steps passed on 2026-11-17 on a
+> cloud Ubuntu 24.04 box (Docker 29.1.3, containerlab 0.83.0, cEOS 4.32.0F).
+> Run it on WSL2, correct it where reality differs, and record the run in
+> `docs/runlog/`.
 
 ## Prerequisites
 
 - WSL2 with Docker running inside it.
 - containerlab: `bash -c "$(curl -sL https://get.containerlab.dev)"`
 - The cEOS-lab image. It is not on a public registry: download
-  `cEOS64-lab-4.32.0F.tar.xz` from arista.com (free account), then
+  `cEOS-lab-4.32.0F.tar.xz` (or the `cEOS64-lab-` build) from arista.com
+  (free account), then
 
   ```bash
-  docker import cEOS64-lab-4.32.0F.tar.xz ceos:4.32.0F
+  docker import cEOS-lab-4.32.0F.tar.xz ceos:4.32.0F
   ```
 
   A different version works if `CLAB_KIND` in `netauto/render.py` is changed
@@ -51,21 +53,18 @@ curl -sk -u admin:admin https://172.20.20.21/command-api \
 Steps 5–8 write diff, pre/post state and check results to `artifacts/` (not
 committed). That directory is the evidence for the run log.
 
-## Things most likely to differ from this document
+## What the first run answered
 
-- Whether containerlab's default cEOS config puts management in a VRF. If it
-  does, NAPALM still connects, but note it: it matters for config replace.
-- Whether eAPI listens on HTTPS by default. If only HTTP, set
-  `NETAUTO_EOS_TRANSPORT=http`.
-- How long BGP takes to converge on cEOS. The default `--settle-timeout` is
-  120 s; record the real number.
-- Whether LLDP reports the neighbour as `spine1` or with a domain suffix (the
-  check strips a suffix).
-- What an unconfigured router answers to the BGP show commands: an empty
-  table or an error. Either is handled; an error shows up as `bgp_error` in
-  `pre.json`.
-- Whether EOS accepts every line of the rendered configs. They have been
-  reviewed but never loaded on a device.
+| Question | Answer on cEOS 4.32.0F / containerlab 0.83.0 |
+|---|---|
+| Management in a VRF? | No. `Management0` is in the default VRF. |
+| eAPI over HTTPS by default? | Yes, on all four routers. |
+| LLDP neighbour name format | Plain hostname (`spine1`), no domain suffix. |
+| Rendered configs accepted? | Yes, every line, on all four routers. |
+| Step 5 result | Exactly as predicted: C01 `Loopback0` missing, C03 for every peer. |
+| BGP convergence time | Not measured. Record it on WSL2. |
+
+Still open: how the WSL2 memory cap copes with four cEOS nodes.
 
 ## Tear down
 

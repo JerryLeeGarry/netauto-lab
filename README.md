@@ -30,7 +30,8 @@ sot/lab.yml ──seed──▶ NetBox
         │                         │
       pass                      fail
         ▼                         ▼
-   confirm commit           roll back everything
+   confirm commit           abort every commit, then verify running
+                            and startup match their pre-change text
 ```
 
 The lab is a 2-spine / 2-leaf eBGP fabric of Arista cEOS with two Linux hosts.
@@ -78,7 +79,7 @@ netauto --source netbox deploy
 | `netauto/validate.py` | Semantic rules R01–R12. |
 | `netauto/render.py`, `templates/` | Config and topology rendering. |
 | `netauto/netbox.py` | NetBox seed and loader. |
-| `netauto/intent.py`, `netauto/checks.py` | Expected state and checks C01–C06. |
+| `netauto/intent.py`, `netauto/checks.py` | Expected state and checks C01–C06 (C07, revert verification, lives in `deploy.py`). |
 | `netauto/deploy.py` | Fabric-wide deploy with commit-confirm. |
 | `configs/`, `clab/lab.clab.yml` | Generated. Committed so config changes show in PR diffs. |
 | `tests/` | Offline tests; `test_netbox_live.py` needs a NetBox. |
@@ -88,16 +89,24 @@ netauto --source netbox deploy
 
 | Phase | Code | Verified |
 |---|---|---|
-| 1 — containerlab topology + Day-0 bootstrap | done | [ ] deployed on WSL2 |
-| 2 — SoT model, validation, rendering | done | [x] offline tests in CI |
+| 1 — containerlab topology + Day-0 bootstrap | done | [x] all 9 steps on cEOS 4.32.0F, cloud Ubuntu 24.04 box — [ ] on my WSL2 |
+| 2 — SoT model, validation, rendering | done | [x] offline tests in CI — [x] rendered configs accepted by cEOS |
 | 2 — NetBox seed / load | done | [x] round trip against NetBox 4.7.5 — [ ] on my own NetBox |
-| 3 — NAPALM deploy + pre/post-change validation | done | [x] sequence tested with a fake driver — [ ] against cEOS |
+| 3 — NAPALM deploy + pre/post-change validation | done | [x] commit, confirm, and a rejected change reverted on cEOS (C07 verified) |
 | 4 — CI: lint, validate, render check, tests | done | [x] green on GitHub |
 
 Unticked boxes are things that have not been observed yet. Results go in
 [docs/runlog/](docs/runlog/).
 
 ## Known limitations
+
+- **cEOS: NAPALM's `rollback()` can save a rolled-back change to startup.**
+  Found in the lab. The deploy no longer calls it; it aborts the pending
+  commit and verifies running and startup (C07). Anything else that calls
+  `rollback()` on EOS with a commit-confirm pending is exposed.
+- **Renumbering cannot be deployed.** Changing a link's addresses leaves the
+  old BGP neighbour configured (merge), C05 flags it, and the change is
+  reverted. Seen in the lab. Needs config replace, or explicit removal lines.
 
 - **Config merge, not replace.** Lines removed from the SoT stay on the device.
   Check C05 detects stray BGP peers; anything else drifts silently. Replace

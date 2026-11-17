@@ -23,6 +23,17 @@ Which check caught it (C01–C06, R01–R12)? If none did, that is the finding.
 Concrete changes to rules, checks, templates or docs. Link the commits.
 ```
 
+## Already observed, waiting for a postmortem
+
+**A rolled-back change survived in startup-config** (2026-11-17, cloud box).
+A commit-confirm on leaf2 was rolled back with NAPALM's `rollback()`; running
+config reverted, startup-config kept the change. Reproduced 3/3 on spine1,
+fixed by aborting and verifying instead (C07), fix verified 3/3. Raw evidence
+is on the box under `artifacts/evidence-2026-11-17/` — the logs, not a
+write-up. Questions a postmortem should answer: why did no check C01–C06
+notice? What would have happened on the next reboot? What else in the
+pipeline trusts a call's return value instead of observing the result?
+
 ## Drills
 
 Three failures to cause on purpose. Each one exercises a different part of
